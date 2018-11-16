@@ -1,3 +1,5 @@
+require('./config/config');
+
 const _ = require('lodash');
 
 var express = require('express');
@@ -8,7 +10,7 @@ var { mongoose } = require('./db/mongoose');
 var { User } = require('./models/user');
 var { Todo } = require('./models/todo');
 
-var port = process.env.PORT || 3000;
+var port = process.env.PORT;
 
 var app = express();
 
