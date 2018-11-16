@@ -78,7 +78,6 @@ describe('GET /todos', () => {
 });
 
 describe('GET /todos/:id', () => {
-
     it('should return valid doc', (done) => {
         request(app)
             .get(`/todos/${seedTodos[ 0 ]._id.toHexString()}`)
@@ -97,6 +96,39 @@ describe('GET /todos/:id', () => {
     it('should return 404 in case of invalid id', (done) => {
         request(app)
             .get(`/todos/123`)
+            .expect(404)
+            .end(done);
+    });
+});
+
+describe('DELETE /todos/:id', () => {
+    it('should delete a note', (done) => {
+        var id = seedTodos[ 0 ]._id.toHexString();
+        request(app)
+            .delete(`/todos/${id}`)
+            .expect(200)
+            .expect(res => res.body.todo._id == id)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                Todo.findById(id).then(data => {
+                    expect(data).toNotExist();
+                    done();
+                }).catch(error => done(error));
+            });
+    });
+
+    it('should return 404 if object not found', (done) => {
+        request(app)
+            .delete(`/todos/${new ObjectID()}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return 404 if id is not valid', (done) => {
+        request(app)
+            .delete('/todos/123')
             .expect(404)
             .end(done);
     });
