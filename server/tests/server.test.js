@@ -12,7 +12,9 @@ const seedTodos = [
     },
     {
         _id: new ObjectID(),
-        text: 'second test todo'
+        text: 'second test todo',
+        completed: true,
+        completedAt: 123
     }
 ];
 
@@ -131,5 +133,37 @@ describe('DELETE /todos/:id', () => {
             .delete('/todos/123')
             .expect(404)
             .end(done);
+    });
+});
+
+describe('PATCH /todos/:id', () => {
+    it('should update a todo and mark it completed', (done) => {
+        var id = seedTodos[ 0 ]._id.toHexString();
+        var text = "text updated from mocha"
+        request(app)
+            .patch(`/todos/${id}`)
+            .send({ text: text, completed: true })
+            .expect(200)
+            .expect(res => {
+                expect(res.body.todo.text).toBe(text);
+                expect(res.body.todo.completed).toBe(true);
+                expect(res.body.todo.completedAt).toNotBeA('Number')
+            })
+            .end(done)
+    });
+
+    it('should mark the not and not completed', (done) => {
+        var id = seedTodos[ 1 ]._id.toHexString();
+        var text = "text updated from mocha"
+        request(app)
+            .patch(`/todos/${id}`)
+            .send({ text: text, completed: false })
+            .expect(200)
+            .expect(res => {
+                expect(res.body.todo.text).toBe(text);
+                expect(res.body.todo.completed).toBe(false);
+                expect(res.body.todo.completedAt).toNotExist()
+            })
+            .end(done)
     });
 });
