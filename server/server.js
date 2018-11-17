@@ -9,6 +9,7 @@ var { ObjectID } = require('mongodb');
 var { mongoose } = require('./db/mongoose');
 var { User } = require('./models/user');
 var { Todo } = require('./models/todo');
+const { authenticate } = require('./middleware/authenticate');
 
 var port = process.env.PORT;
 
@@ -89,7 +90,26 @@ app.patch('/todos/:id', (req, res) => {
     }).catch(error => res.status(400).send());
 });
 
+app.post('/users', (req, res) => {
+    var body = _.pick(req.body, [ 'email', 'password' ]);
+    var user = new User(body);
+    user.save()
+        .then(() => user.generateAuthToken())
+        .then(token => res.header('x-auth', token).send(user))
+        .catch(error => { res.status(400).send(error) });
+});
 
+
+
+app.get('/users/me', authenticate, (req, res) => {
+    var token = req.header('x-auth');
+    User.findByToken(token).then(user => {
+        if (!user) {
+            return Promise.reject();
+        }
+        res.send(user);
+    }).catch(() => res.status(401).send());
+});
 
 app.listen(port, () => {
     console.log(`Server started on port ${port}`);
