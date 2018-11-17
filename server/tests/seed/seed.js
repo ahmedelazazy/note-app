@@ -4,19 +4,6 @@ const jwt = require('jsonwebtoken');
 const { Todo } = require('./../../models/todo');
 const { User } = require('./../../models/user');
 
-const seedTodos = [
-    {
-        _id: new ObjectID(),
-        text: 'first test todo'
-    },
-    {
-        _id: new ObjectID(),
-        text: 'second test todo',
-        completed: true,
-        completedAt: 123
-    }
-];
-
 var userOneId = new ObjectID();
 var userTwoId = new ObjectID();
 const seedUsers = [ {
@@ -26,15 +13,35 @@ const seedUsers = [ {
     tokens: [
         {
             access: 'auth',
-            token: jwt.sign({ _id: userOneId.toHexString(), access: 'auth' }, 'secret').toString()
+            token: jwt.sign({ _id: userOneId.toHexString(), access: 'auth' }, process.env.JWT_SECRET).toString()
         }
     ]
 }, {
     _id: userTwoId,
     email: 'user2@mail.com',
     password: 'userTwoPass',
+    tokens: [
+        {
+            access: 'auth',
+            token: jwt.sign({ _id: userTwoId.toHexString(), access: 'auth' }, process.env.JWT_SECRET).toString()
+        }
+    ]
 } ];
 
+const seedTodos = [
+    {
+        _id: new ObjectID(),
+        text: 'first test todo',
+        _creator: userOneId
+    },
+    {
+        _id: new ObjectID(),
+        text: 'second test todo',
+        completed: true,
+        completedAt: 123,
+        _creator: userTwoId
+    }
+];
 
 const populateTodos = (done) => {
     Todo.remove({}).then(() => {
