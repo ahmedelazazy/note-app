@@ -99,7 +99,16 @@ app.post('/users', (req, res) => {
         .catch(error => { res.status(400).send(error) });
 });
 
+app.post('/users/login', (req, res) => {
+    var body = _.pick(req.body, [ 'email', 'password' ]);
 
+    User.findByCredentials(body.email, body.password)
+        .then((user) => {
+            user.generateAuthToken()
+                .then(token => res.header('x-auth', token).send(user))
+        })
+        .catch(() => res.status(400).send());
+});
 
 app.get('/users/me', authenticate, (req, res) => {
     var token = req.header('x-auth');
@@ -109,6 +118,12 @@ app.get('/users/me', authenticate, (req, res) => {
         }
         res.send(user);
     }).catch(() => res.status(401).send());
+});
+
+app.delete('/users/me/token', authenticate, (req, res) => {
+    req.user.removeToken(req.token).then(
+        () => res.send(),
+        () => res.status(400).send())
 });
 
 app.listen(port, () => {
